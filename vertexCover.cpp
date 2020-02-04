@@ -33,12 +33,20 @@ void readData(string fileName, vector<tuple<int, int, int> >& setlist, unordered
     if (sim < simThr) continue;
     
     lineNum++;
-    if (lineNum % 10000 == 0) cout << "Reading line " << lineNum << endl;
+    if (lineNum % 10000 == 0) cout << "Reading line " << lineNum << "..." << endl;
     setlist.push_back(make_tuple(v1, v2, lineNum));
     incrementSetSize(v1, setSizes);
     incrementSetSize(v2, setSizes);
   }
   ifs.close();
+}
+
+void printVector(vector<int>& v) {
+	vector<int>::iterator it;
+	for (it=v.begin(); it!=v.end(); ++it) {
+		cout << *it << " ";
+	}
+	cout << endl;
 }
 
 void printSetlist(vector<tuple<int, int, int> >& setlist) {
@@ -57,7 +65,6 @@ void printSetSizes(unordered_map<int, int>& setSizes) {
   }
 }
 
-// Get id of the largest set.
 int getMaxSetId(unordered_map<int, int>& setSizes) {
   unordered_map<int, int>::iterator max = setSizes.begin();
   unordered_map<int, int>::iterator it;
@@ -85,6 +92,20 @@ void removeSetElements(int setId, vector<tuple<int, int, int> >& setlist, unorde
   setlist.erase(rmEnd, setlist.end());
 }
 
+void runSetCover(vector<tuple<int, int, int> >& setlist, unordered_map<int, int>& setSizes, vector<int>& finalSets) {
+  while (setlist.size() > 0) {
+    int maxSetId = getMaxSetId(setSizes);
+    finalSets.push_back(maxSetId);
+    removeSetElements(maxSetId, setlist, setSizes);
+
+    cout << "*Removing set " << maxSetId << "..." << endl;
+    cout << "set/vertex count=" << setSizes.size() << endl;
+    cout << "element/edge count=" << setlist.size() << endl;
+    //printSetlist(setlist);
+    //printSetSizes(setSizes);
+  }
+}
+
 int main(int argc, char** argv) {
   if (argc < 3) {
     cout << "./program edgelistFile outputFile" << endl;
@@ -96,21 +117,19 @@ int main(int argc, char** argv) {
 
   vector<tuple<int, int, int> > setlist;
   unordered_map<int, int> setSizes;
-  vector<int> coverSets;
+  vector<int> finalSets;
 
   readData(edgelistFileName, setlist, setSizes);
   cout << "Finished reading data" << endl;
-  printSetlist(setlist);
-  cout << endl;
-  printSetSizes(setSizes);
-  int maxSetId = getMaxSetId(setSizes);
-  cout << "set count=" << setSizes.size() << endl;
-  cout << "maxset id=" << maxSetId << "; maxset size=" << setSizes[maxSetId] << endl;
-  cout << "Removing max set..." << endl;
-  removeSetElements(maxSetId, setlist, setSizes);
-  printSetlist(setlist);
-  cout << endl;
-  printSetSizes(setSizes);
+  cout << "set/vertex count=" << setSizes.size() << endl;
+  cout << "element/edge count=" << setlist.size() << endl;
+  //cout << "*Initial data:" << endl;
+  //printSetlist(setlist);
+  //printSetSizes(setSizes);
+
+  runSetCover(setlist, setSizes, finalSets);
+  cout << "*Final sets:" << endl;
+  printVector(finalSets);
 
   return 0;
 }
